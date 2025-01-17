@@ -17,10 +17,13 @@ len(files)
 files[0]
 data_path = "../../data/raw/MetaMotion/"
 f = files[0]
+# f.split("-")[0]
 
 participant = f.split("-")[0].replace(data_path, "")
 label = f.split("-")[1]
 category = f.split("-")[2].rstrip("123").rstrip("_MetaWear_2019")
+
+df = pd.read_csv(f)
 
 df['participant'] = participant
 df["label"] = label
@@ -148,7 +151,6 @@ data_merged.columns = [
     "participant",
     "label",
     "category",
-    
     "set",
 ]
 # --------------------------------------------------------------

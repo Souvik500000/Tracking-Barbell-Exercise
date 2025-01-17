@@ -90,19 +90,66 @@ LowPass.low_pass_filter(
 # Create function to count repetitions
 # --------------------------------------------------------------
 
-column = "acc_y"
+def count_reps(dataset, cutoff=0.4, order=10, column="acc_r"):
+    
+    data = LowPass.low_pass_filter(
+        dataset, col = column , sampling_frequency=fs, cutoff_frequency=0.4, order=10
+    )
+    indexes = argrelextrema(data[column + "_lowpass"].values, np.greater)
+    peaks = data.iloc[indexes]
+    
+    fig,ax = plt.subplots()
+    plt.plot(dataset[f"{column}_lowpass"])
+    plt.plot(peaks[f"{column}_lowpass"], "o", color="red")
+    ax.set_ylabel(f"{column}_lowpass")
+    exercise = dataset["label"].iloc[0].title()
+    category = dataset["category"].iloc[0].title()
+    plt.title(f"{category} {exercise}: {len(peaks)} Reps")
+    plt.show()
+    
+    
+    return len(peaks)
 
-data = LowPass.low_pass_filter(
-    bench_set, col = column , sampling_frequency=fs, cutoff_frequency=0.4, order=10
-)
-argrelextrema(data[column + "_lowpass"].values, np.greater)
-peaks = data.iloc[indexes]
+count_reps(dead_set)
+
+count_reps(bench_set, cutoff=0.4)
+
+
+rep_df
 
 # --------------------------------------------------------------
 # Create benchmark dataframe
 # --------------------------------------------------------------
 
+df["reps"] = df["category"].apply(lambda x:5 if x=="heavy" else 10)
+rep_df = df.groupby(["label", "category", "set"])["reps"].max().reset_index()
+rep_df["reps_pred"] = 0
 
+for s in df["set"].unique():
+    subset = df[df["set"] == s]
+    
+    column = "acc_r"
+    cutoff = 0.4
+    
+    if subset["label"].iloc[0] == "squat":
+        cutoff = 0.35
+        
+    if subset["label"].iloc[0] == "row":
+        cutoff = 0.65
+        col = "gyr_x"
+    
+    if subset["label"].iloc[0] == "ohp":
+        cutoff = 0.35
+    
+    reps = count_reps(subset, cutoff=cutoff, column=column)
+
+    rep_df.loc[rep_df["set"] == s, "reps_pred"] = reps
+
+rep_df
 # --------------------------------------------------------------
 # Evaluate the results
 # --------------------------------------------------------------
+
+error = mean_absolute_error(rep_df["reps"], rep_df["reps_pred"]).round(2)
+# rep_df.groupby(["label", "category"])["reps", "reps_pred"].mean().plot.bar()
+rep_df.groupby(["label", "category"])[["reps", "reps_pred"]].mean().plot.bar()

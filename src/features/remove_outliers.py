@@ -130,10 +130,6 @@ for col in outlier_columns:
 # Chauvenets criteron (distribution based)
 # --------------------------------------------------------------
 
-
-
-
-
 # Check for normal distribution
 
 df[outlier_columns[:3] + ["label"]].plot.hist(by="label", figsize=(20,20), layout=(3,3))
