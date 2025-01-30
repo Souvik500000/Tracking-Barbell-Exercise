@@ -1,28 +1,72 @@
-# Tracking Barbell Exercises
+# Context-Aware Applications for Strength Training
 
-## Description
-This project explores the development of a context-aware application for tracking barbell exercises. Using data collected from wristband sensors (accelerometer and gyroscope), the system aims to replicate the functionality of a personal trainer by:
-- Classifying exercises
-- Counting repetitions
-- Detecting improper form
+## Overview
+This repository explores the possibilities of context-aware applications for strength training using machine learning. The project analyzes wristband accelerometer and gyroscope data to track exercises, count repetitions, and detect improper form. The goal is to develop models that can function as digital personal trainers.
 
-It employs machine learning techniques to analyze data from strength training sessions, focusing on core barbell exercises and leveraging supervised learning for high accuracy.
+## Motivation
+Wearable fitness technology has significantly advanced in tracking aerobic exercises but remains underdeveloped for free weight exercises. This project investigates how machine learning can bridge this gap by enabling real-time tracking and feedback for strength training movements.
 
----
+## Experimental Setup
+### Data Collection
+- **Participants**: 5 individuals performed barbell exercises.
+- **Exercises Tracked**: Bench Press, Deadlift, Overhead Press, Row, Squat.
+- **Repetitions & Sets**: Each participant performed 3 sets of 5 reps (heavy) and 3 sets of 10 reps (medium).
+- **Equipment Used**: MbientLab's wristband sensor research kit.
+- **Sensors**: Accelerometer (12.5Hz) and Gyroscope (25Hz).
+- **Rest Period Data**: Captured to study state transitions from rest to exercise.
 
-## Features
-- **Exercise Classification**: Identifies exercises such as Bench Press, Squat, Deadlift, Overhead Press, and Row with 98.51% accuracy.  
-- **Repetition Counting**: Counts repetitions with a simple peak-counting algorithm, achieving ~95% accuracy.  
-- **Form Detection**: Detects improper bench press form (e.g., bar position errors) with 98.53% accuracy.  
-- **Versatile Data Collection**: Supports medium and heavy weight classes, with realistic workout data.
+### Data Processing
+- **Raw Data Size**: 69,677 entries containing timestamps and x, y, z values from the sensors.
+- **Aggregation**: Time-step of 0.20s applied to minimize data loss.
+- **Feature Engineering**:
+  - Low-pass filtering to remove noise.
+  - Principal Component Analysis (PCA) to reduce dimensionality.
+  - Fourier transformation for frequency domain features.
+  - Aggregated features like standard deviation and mean over 4s windows.
+  - K-means clustering (k=4) to group exercises.
 
----
+## Machine Learning Models
+### 1. Exercise Classification
+- **Algorithm**: Random Forest
+- **Feature Selection**: Top 15 features selected using forward feature selection.
+- **Regularization**: Optimized to prevent overfitting.
+- **Results**:
+  - Accuracy: **98.51%**
+  - Precision, Recall, F1-score: High across all classes
+  - Misclassification: Minor confusion between Bench Press & Overhead Press, and Deadlift & Row due to similar movement patterns.
 
-## Technologies Used
-- **Programming Language**: Python  
-- **Machine Learning Models**: Random Forest, Neural Networks, SVM, etc.  
-- **Data Processing**: Low-pass filtering, PCA, and feature engineering  
-- **Hardware**: MbientLab’s wristband sensors for accelerometer and gyroscope data
+### 2. Repetition Counting
+- **Method**: Peak detection on scalar magnitude acceleration data.
+- **Performance**:
+  - Applied a strong low-pass filter (cut-off: 0.4Hz).
+  - Error rate: **5%**
+  - Adjusted method for each exercise for higher accuracy.
+
+### 3. Form Detection
+- **Algorithm**: Random Forest
+- **Dataset**: Additional data collected for incorrect Bench Press execution.
+- **Misclassified Forms**:
+  - Lowering the bar too high on the chest.
+  - Not touching the chest.
+- **Results**: Accuracy of **98.53%** in detecting improper form.
+
+## Generalization Challenges
+- **Different Weight Classes**:
+  - When trained on heavy weight data, accuracy dropped to **79.97%** on medium weight sets.
+  - Similarly, training on medium weight resulted in **79.51%** accuracy on heavy sets.
+- **Participant Variability**:
+  - Leave-one-out cross-validation resulted in an average accuracy of **85.43%**.
+  - Indicates the need for a larger dataset to improve generalization.
+
+## Conclusion
+This study demonstrates that machine learning can effectively track strength training exercises with high accuracy. However, generalization remains a challenge, requiring extensive training data across diverse users. Future work should focus on:
+- Enhancing dataset diversity (age, skill levels, training styles).
+- Expanding form analysis to other exercises.
+- Integrating real-time feedback mechanisms for live workout correction.
+
+## References
+For detailed methodology, please refer to the full paper: "Exploring the Possibilities of Context-Aware Applications for Strength Training" by Dave Ebbelaar, Vrije Universiteit, Amsterdam.
+
 
 ---
 
@@ -64,31 +108,3 @@ It employs machine learning techniques to analyze data from strength training se
 
 ---
 
-## Data Collection
-- Data was collected from 5 participants performing barbell exercises under realistic conditions.  
-- The dataset includes acceleration and gyroscope readings recorded at high frequency (12.5 Hz and 25 Hz, respectively).
-
----
-
-## Key Results
-- Exercise classification achieved an accuracy of **98.51%**.  
-- Repetition counting error rate was around **5%**.  
-- Bench press form detection reached **98.53% accuracy**.
-
----
-
-## Future Work
-- Incorporate data from additional participants to improve model generalization.  
-- Extend form detection to other exercises.  
-- Explore real-time implementation on wearable devices.
-
----
-
-## Contributors
-- **Souvik Chakraborty**  
-- Original Research by Dave Ebbelaar, Vrije Universiteit, Amsterdam.
-
----
-
-## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
